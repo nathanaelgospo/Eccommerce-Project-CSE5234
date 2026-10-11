@@ -1,23 +1,10 @@
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useOrder } from '../context/OrderContext';
 
 const ViewOrder = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const order = location.state?.order || {
-    items: [],
-    credit_card_number: '',
-    expir_date: '',
-    cvvCode: '',
-    card_holder_name: '',
-    name: '',
-    address_1: '',
-    address_2: '',
-    city: '',
-    state: '',
-    zip: '',
-  };
+  const { order, completeOrder } = useOrder();
 
   const selectedItems = (order.items || []).filter((item) => item.quantity > 0);
   const totalCost = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -27,13 +14,8 @@ const ViewOrder = () => {
     : 'N/A';
 
   const handleConfirmOrder = () => {
-    const confirmationNumber = 'CH-' + Math.floor(100000 + Math.random() * 900000);
-    navigate('/purchase/viewConfirmation', {
-      state: {
-        order,
-        confirmationNumber,
-      },
-    });
+    completeOrder();
+    navigate('/purchase/viewConfirmation');
   };
 
   return (
@@ -103,8 +85,10 @@ const ViewOrder = () => {
                 </button>
               </div>
               <p className="info-bold">{order.name || 'Not provided'}</p>
-              <p className="info-text">{order.address_1}</p>
-              {order.address_2 && <p className="info-text">{order.address_2}</p>}
+              <p className="info-text">{order.addressLine1 || order.address_1}</p>
+              {(order.addressLine2 || order.address_2) && (
+                <p className="info-text">{order.addressLine2 || order.address_2}</p>
+              )}
               <p className="info-text">{order.city ? `${order.city}, ${order.state} ${order.zip}` : ''}</p>
             </div>
 
@@ -114,7 +98,7 @@ const ViewOrder = () => {
                 <button
                   type="button"
                   className="btn-link-edit"
-                  onClick={() => navigate('/purchase/paymentEntry', { state: { order } })}
+                  onClick={() => navigate('/purchase/paymentEntry')}
                 >
                   Edit
                 </button>
@@ -130,7 +114,7 @@ const ViewOrder = () => {
           <button
             type="button"
             className="btn-text-back"
-            onClick={() => navigate('/purchase/shippingEntry', { state: { order } })}
+            onClick={() => navigate('/purchase/shippingEntry')}
           >
             &larr; Back to Shipping
           </button>

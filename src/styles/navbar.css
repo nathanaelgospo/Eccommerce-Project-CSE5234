@@ -1,0 +1,104 @@
+/* =========================================
+   STORE NAVBAR STYLES
+   ========================================= */
+.chanta-nav {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 48px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.logo-icon {
+  width: 20px;
+  height: 20px;
+  color: #111111;
+}
+
+.logo-text {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: #111111;
+}
+
+.trade {
+  font-size: 0.6rem;
+  font-weight: 500;
+  vertical-align: super;
+}
+
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.nav-center a {
+  text-decoration: none;
+  font-size: 0.85rem;
+  color: #555555;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.nav-center a:hover {
+  color: #111111;
+}
+
+.nav-center a.active-nav {
+  color: #111111;
+  border-bottom: 2px solid #111111;
+  padding-bottom: 3px;
+}
+
+.nav-dots {
+  color: #888888;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cart-badge-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #111111;
+  padding: 6px 10px;
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+
+.cart-badge-btn:hover {
+  background-color: #f1f1f1;
+}
+
+.account-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #111111;
+  font-weight: 500;
+  cursor: pointer;
+}
+

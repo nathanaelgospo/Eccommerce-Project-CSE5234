@@ -1,72 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const CATALOG_ITEMS = [
-  {
-    id: 1,
-    name: 'Abbey Road',
-    subtitle: 'The Beatles',
-    genre: 'Rock',
-    price: 34.99,
-    image: '/covers/abbey-road.jpg',
-  },
-  {
-    id: 2,
-    name: 'The Dark Side of the Moon',
-    subtitle: 'Pink Floyd',
-    genre: 'Progressive Rock',
-    price: 39.99,
-    image: '/covers/dark-side.jpg',
-  },
-  {
-    id: 3,
-    name: 'Kind of Blue',
-    subtitle: 'Miles Davis',
-    genre: 'Jazz',
-    price: 32.50,
-    image: '/covers/kind-of-blue.jpg',
-  },
-  {
-    id: 4,
-    name: 'Rumours',
-    subtitle: 'Fleetwood Mac',
-    genre: 'Pop / Rock',
-    price: 29.99,
-    image: '/covers/rumours.jpg',
-  },
-  {
-    id: 5,
-    name: 'Random Access Memories',
-    subtitle: 'Daft Punk',
-    genre: 'Electronic',
-    price: 44.99,
-    image: '/covers/random-access-memories.jpg',
-  },
-];
+import { useOrder, CATALOG_ITEMS } from '../context/OrderContext';
 
 const Purchase = () => {
   const navigate = useNavigate();
-
-  const [order, setOrder] = useState({
-    items: CATALOG_ITEMS.map((item) => ({
-      id: item.id,
-      name: item.name,
-      subtitle: item.subtitle,
-      price: item.price,
-      quantity: 0,
-      image: item.image,
-    })),
-    credit_card_number: '',
-    expir_date: '',
-    cvvCode: '',
-    card_holder_name: '',
-    name: '',
-    address_1: '',
-    address_2: '',
-    city: '',
-    state: '',
-    zip: '',
-  });
+  const { order, updateQuantity, addToCart } = useOrder();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState('All Genres');
@@ -83,22 +21,11 @@ const Purchase = () => {
   const sortOptions = ['Featured', 'Price: Low to High', 'Price: High to Low', 'Name: A to Z'];
 
   const handleQuantityChange = (itemId, value) => {
-    const qty = Math.max(0, parseInt(value, 10) || 0);
-    setOrder((prev) => {
-      const updatedItems = prev.items.map((it) =>
-        it.id === itemId ? { ...it, quantity: qty } : it
-      );
-      return { ...prev, items: updatedItems };
-    });
+    updateQuantity(itemId, value);
   };
 
   const handleAddToCart = (itemId) => {
-    setOrder((prev) => {
-      const updatedItems = prev.items.map((it) =>
-        it.id === itemId ? { ...it, quantity: (it.quantity || 0) + 1 } : it
-      );
-      return { ...prev, items: updatedItems };
-    });
+    addToCart(itemId);
     setIsDrawerOpen(true);
   };
 
@@ -146,10 +73,7 @@ const Purchase = () => {
         </div>
 
         <nav className="nav-center">
-          <a href="/purchase" className="active-nav">Records</a>
-          <a href="#new-releases">New Releases</a>
-          <a href="#genres">Genres</a>
-          <span className="nav-dots">•••</span>
+          <a href="/purchase" className="active-nav">Catalog</a>
         </nav>
 
         <div className="nav-right">
@@ -323,37 +247,54 @@ const Purchase = () => {
                 </div>
               ) : (
                 <div className="cart-line-items">
-                  {order.items.map((item, idx) => {
+                  {order.items.map((item) => {
                     if (item.quantity === 0) return null;
-                    return (
-                      <div key={item.id} className="drawer-item">
-                        <img src={item.image} alt={item.name} className="drawer-item-img" />
-                        <div className="drawer-item-info">
-                          <h4>{item.name}</h4>
-                          <span className="drawer-item-price">${item.price.toFixed(2)}</span>
-                          <div className="drawer-qty-row">
-                            <label>Qty:</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={item.quantity}
-                              onChange={(e) => handleQuantityChange(idx, e.target.value)}
-                            />
-                            <button
-                              type="button"
-                              className="remove-btn"
-                              onClick={() => handleQuantityChange(idx, 0)}
-                            >
-                              Remove
-                            </button>
+                      return (
+                        <div key={item.id} className="drawer-item">
+                          <img src={item.image} alt={item.name} className="drawer-item-img" />
+                          <div className="drawer-item-info">
+                            <h4>{item.name}</h4>
+                            <span className="drawer-item-price">${item.price.toFixed(2)}</span>
+                            <div className="drawer-qty-row">
+                              <label>Qty:</label>
+                              <div className="quantity-stepper" style={{ transform: 'scale(0.85)', transformOrigin: 'left center' }}>
+                                <button
+                                  type="button"
+                                  className="stepper-btn"
+                                  onClick={() => handleQuantityChange(item.id, Math.max(0, item.quantity - 1))}
+                                >
+                                  −
+                                </button>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  className="stepper-input"
+                                  value={item.quantity}
+                                  onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                                />
+                                <button
+                                  type="button"
+                                  className="stepper-btn"
+                                  onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                >
+                                  +
+                                </button>
+                              </div>
+                              <button
+                                type="button"
+                                className="remove-btn"
+                                onClick={() => handleQuantityChange(item.id, 0)}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                          <div className="drawer-item-subtotal">
+                            ${(item.price * item.quantity).toFixed(2)}
                           </div>
                         </div>
-                        <div className="drawer-item-subtotal">
-                          €{(item.price * item.quantity).toFixed(2)}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               )}
             </div>

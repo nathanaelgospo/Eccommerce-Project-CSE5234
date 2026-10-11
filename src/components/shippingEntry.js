@@ -1,45 +1,79 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useOrder } from '../context/OrderContext';
 
 const ShippingEntry = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const initialOrder = location.state?.order || {
-    items: [],
-    credit_card_number: '',
-    expir_date: '',
-    cvvCode: '',
-    card_holder_name: '',
-    name: '',
-    address_1: '',
-    address_2: '',
-    city: '',
-    state: '',
-    zip: '',
-  };
+  const { order, updateShippingInfo } = useOrder();
 
   const [shippingData, setShippingData] = useState({
-    name: initialOrder.name || '',
-    address_1: initialOrder.address_1 || '',
-    address_2: initialOrder.address_2 || '',
-    city: initialOrder.city || '',
-    state: initialOrder.state || '',
-    zip: initialOrder.zip || '',
+    name: order.name || '',
+    address_1: order.addressLine1 || order.address_1 || '',
+    address_2: order.addressLine2 || order.address_2 || '',
+    city: order.city || '',
+    state: order.state || '',
+    zip: order.zip || '',
   });
+
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const errs = {};
+
+    // Recipient Name
+    if (!shippingData.name.trim()) {
+      errs.name = 'Recipient name is required.';
+    } else if (shippingData.name.trim().length < 2) {
+      errs.name = 'Please enter a valid name.';
+    }
+
+    // Street Address
+    if (!shippingData.address_1.trim()) {
+      errs.address_1 = 'Street address is required.';
+    }
+
+    // City
+    if (!shippingData.city.trim()) {
+      errs.city = 'City is required.';
+    } else if (!/^[a-zA-Z\s.-]+$/.test(shippingData.city.trim())) {
+      errs.city = 'Enter a valid city name.';
+    }
+
+    // State (2 letters)
+    if (!shippingData.state.trim()) {
+      errs.state = 'State required.';
+    } else if (!/^[a-zA-Z]{2}$/.test(shippingData.state.trim())) {
+      errs.state = '2-letter code (e.g. OH).';
+    }
+
+    // ZIP Code (5 digits or ZIP+4)
+    if (!shippingData.zip.trim()) {
+      errs.zip = 'ZIP required.';
+    } else if (!/^\d{5}(-\d{4})?$/.test(shippingData.zip.trim())) {
+      errs.zip = '5 digits (e.g. 43210).';
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setShippingData((prev) => ({ ...prev, [name]: value }));
+    // Auto-capitalize state
+    const processedValue = name === 'state' ? value.toUpperCase() : value;
+    setShippingData((prev) => ({ ...prev, [name]: processedValue }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const updatedOrder = {
-      ...initialOrder,
-      ...shippingData,
-    };
-    navigate('/purchase/viewOrder', { state: { order: updatedOrder } });
+    if (!validate()) {
+      return;
+    }
+    updateShippingInfo(shippingData);
+    navigate('/purchase/viewOrder');
   };
 
   return (
@@ -66,18 +100,19 @@ const ShippingEntry = () => {
         <h2 className="checkout-title">Shipping Address</h2>
         <p className="checkout-sub">Where should we deliver your order?</p>
 
-        <form onSubmit={handleSubmit} className="modern-form">
+        <form onSubmit={handleSubmit} className="modern-form" noValidate>
           <div className="field-group">
             <label htmlFor="name">Recipient Name</label>
             <input
               id="name"
               name="name"
               type="text"
-              required
+              className={errors.name ? 'input-error' : ''}
               placeholder="Full Name"
               value={shippingData.name}
               onChange={handleChange}
             />
+            {errors.name && <span className="field-error-msg">{errors.name}</span>}
           </div>
 
           <div className="field-group">
@@ -86,11 +121,14 @@ const ShippingEntry = () => {
               id="address_1"
               name="address_1"
               type="text"
-              required
+              className={errors.address_1 ? 'input-error' : ''}
               placeholder="Address line 1"
               value={shippingData.address_1}
               onChange={handleChange}
             />
+            {errors.address_1 && (
+              <span className="field-error-msg">{errors.address_1}</span>
+            )}
           </div>
 
           <div className="field-group">
@@ -112,11 +150,12 @@ const ShippingEntry = () => {
                 id="city"
                 name="city"
                 type="text"
-                required
+                className={errors.city ? 'input-error' : ''}
                 placeholder="City"
                 value={shippingData.city}
                 onChange={handleChange}
               />
+              {errors.city && <span className="field-error-msg">{errors.city}</span>}
             </div>
 
             <div className="field-group">
@@ -125,12 +164,13 @@ const ShippingEntry = () => {
                 id="state"
                 name="state"
                 type="text"
-                required
                 maxLength="2"
-                placeholder="State"
+                className={errors.state ? 'input-error' : ''}
+                placeholder="OH"
                 value={shippingData.state}
                 onChange={handleChange}
               />
+              {errors.state && <span className="field-error-msg">{errors.state}</span>}
             </div>
 
             <div className="field-group">
@@ -139,11 +179,13 @@ const ShippingEntry = () => {
                 id="zip"
                 name="zip"
                 type="text"
-                required
-                placeholder="ZIP"
+                maxLength="10"
+                className={errors.zip ? 'input-error' : ''}
+                placeholder="43210"
                 value={shippingData.zip}
                 onChange={handleChange}
               />
+              {errors.zip && <span className="field-error-msg">{errors.zip}</span>}
             </div>
           </div>
 
@@ -151,7 +193,7 @@ const ShippingEntry = () => {
             <button
               type="button"
               className="btn-text-back"
-              onClick={() => navigate('/purchase/paymentEntry', { state: { order: initialOrder } })}
+              onClick={() => navigate('/purchase/paymentEntry')}
             >
               &larr; Back to Payment
             </button>

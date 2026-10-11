@@ -1,0 +1,110 @@
+/* =========================================
+   REVIEW ORDER STYLES
+   ========================================= */
+.review-sections-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .review-sections-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.review-panel {
+  background: #fbfbfb;
+  border: 1px solid #eeeeee;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.panel-title {
+  margin: 0 0 14px 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.panel-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-link-edit {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: #111111;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.review-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review-item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-item-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  background-color: #ffffff;
+}
+
+.review-item-meta {
+  flex: 1;
+}
+
+.review-item-meta h4 {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.review-item-meta .subtext {
+  font-size: 0.75rem;
+  color: #777777;
+  margin: 2px 0;
+}
+
+.review-item-meta span {
+  font-size: 0.75rem;
+  color: #555555;
+}
+
+.review-item-price {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.review-total-row {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed #d5d5d5;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.info-bold {
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.info-text {
+  font-size: 0.85rem;
+  color: #555555;
+  margin: 2px 0;
+}
+

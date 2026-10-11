@@ -1,43 +1,83 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useOrder } from '../context/OrderContext';
 
 const PaymentEntry = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const initialOrder = location.state?.order || {
-    items: [],
-    credit_card_number: '',
-    expir_date: '',
-    cvvCode: '',
-    card_holder_name: '',
-    name: '',
-    address_1: '',
-    address_2: '',
-    city: '',
-    state: '',
-    zip: '',
-  };
+  const { order, updatePaymentInfo } = useOrder();
 
   const [paymentData, setPaymentData] = useState({
-    credit_card_number: initialOrder.credit_card_number || '',
-    expir_date: initialOrder.expir_date || '',
-    cvvCode: initialOrder.cvvCode || '',
-    card_holder_name: initialOrder.card_holder_name || '',
+    credit_card_number: order.credit_card_number || '',
+    expir_date: order.expir_date || '',
+    cvvCode: order.cvvCode || '',
+    card_holder_name: order.card_holder_name || '',
   });
+
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const errs = {};
+
+    // Cardholder Name: at least 2 chars, letters and spaces
+    if (!paymentData.card_holder_name.trim()) {
+      errs.card_holder_name = 'Cardholder name is required.';
+    } else if (!/^[a-zA-Z\s.'-]+$/.test(paymentData.card_holder_name.trim())) {
+      errs.card_holder_name = 'Please enter a valid cardholder name.';
+    }
+
+    // Card Number: 13-19 digits
+    const cleanCard = paymentData.credit_card_number.replace(/\s+/g, '');
+    if (!cleanCard) {
+      errs.credit_card_number = 'Credit card number is required.';
+    } else if (!/^\d{13,19}$/.test(cleanCard)) {
+      errs.credit_card_number = 'Enter a valid 13-19 digit card number.';
+    }
+
+    // Expiration Date: MM/YY, valid future date
+    if (!paymentData.expir_date.trim()) {
+      errs.expir_date = 'Expiration date is required.';
+    } else {
+      const match = paymentData.expir_date.trim().match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
+      if (!match) {
+        errs.expir_date = 'Format must be MM/YY.';
+      } else {
+        const month = parseInt(match[1], 10);
+        const year = 2000 + parseInt(match[2], 10);
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+        if (year < currentYear || (year === currentYear && month < currentMonth)) {
+          errs.expir_date = 'Card is expired.';
+        }
+      }
+    }
+
+    // CVV: 3 or 4 digits
+    if (!paymentData.cvvCode.trim()) {
+      errs.cvvCode = 'CVV is required.';
+    } else if (!/^\d{3,4}$/.test(paymentData.cvvCode.trim())) {
+      errs.cvvCode = 'Enter 3 or 4 digits.';
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setPaymentData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const updatedOrder = {
-      ...initialOrder,
-      ...paymentData,
-    };
-    navigate('/purchase/shippingEntry', { state: { order: updatedOrder } });
+    if (!validate()) {
+      return;
+    }
+    updatePaymentInfo(paymentData);
+    navigate('/purchase/shippingEntry');
   };
 
   return (
@@ -64,18 +104,21 @@ const PaymentEntry = () => {
         <h2 className="checkout-title">Payment Information</h2>
         <p className="checkout-sub">Enter your payment card details below.</p>
 
-        <form onSubmit={handleSubmit} className="modern-form">
+        <form onSubmit={handleSubmit} className="modern-form" noValidate>
           <div className="field-group">
             <label htmlFor="card_holder_name">Cardholder Name</label>
             <input
               id="card_holder_name"
               name="card_holder_name"
               type="text"
-              required
+              className={errors.card_holder_name ? 'input-error' : ''}
               placeholder="Full name as printed on card"
               value={paymentData.card_holder_name}
               onChange={handleChange}
             />
+            {errors.card_holder_name && (
+              <span className="field-error-msg">{errors.card_holder_name}</span>
+            )}
           </div>
 
           <div className="field-group">
@@ -84,11 +127,14 @@ const PaymentEntry = () => {
               id="credit_card_number"
               name="credit_card_number"
               type="text"
-              required
+              className={errors.credit_card_number ? 'input-error' : ''}
               placeholder="1234 5678 9012 3456"
               value={paymentData.credit_card_number}
               onChange={handleChange}
             />
+            {errors.credit_card_number && (
+              <span className="field-error-msg">{errors.credit_card_number}</span>
+            )}
           </div>
 
           <div className="field-row">
@@ -98,11 +144,15 @@ const PaymentEntry = () => {
                 id="expir_date"
                 name="expir_date"
                 type="text"
-                required
+                maxLength="5"
+                className={errors.expir_date ? 'input-error' : ''}
                 placeholder="MM/YY"
                 value={paymentData.expir_date}
                 onChange={handleChange}
               />
+              {errors.expir_date && (
+                <span className="field-error-msg">{errors.expir_date}</span>
+              )}
             </div>
 
             <div className="field-group">
@@ -112,11 +162,14 @@ const PaymentEntry = () => {
                 name="cvvCode"
                 type="password"
                 maxLength="4"
-                required
+                className={errors.cvvCode ? 'input-error' : ''}
                 placeholder="123"
                 value={paymentData.cvvCode}
                 onChange={handleChange}
               />
+              {errors.cvvCode && (
+                <span className="field-error-msg">{errors.cvvCode}</span>
+              )}
             </div>
           </div>
 
@@ -124,7 +177,7 @@ const PaymentEntry = () => {
             <button
               type="button"
               className="btn-text-back"
-              onClick={() => navigate('/purchase', { state: { order: initialOrder } })}
+              onClick={() => navigate('/purchase')}
             >
               &larr; Return to store
             </button>

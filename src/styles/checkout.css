@@ -1,0 +1,186 @@
+/* =========================================
+   CHECKOUT FORMS & REUSABLE FORM STYLES
+   ========================================= */
+.checkout-page {
+  background-color: #ededed;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+.checkout-minimal-header {
+  background-color: #ffffff;
+  padding: 18px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.checkout-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkout-steps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.step-item {
+  color: #999999;
+}
+
+.step-item.active {
+  font-weight: 700;
+  color: #111111;
+}
+
+.step-item.done {
+  color: #555555;
+}
+
+.step-sep {
+  color: #cccccc;
+  font-size: 0.8rem;
+}
+
+.checkout-card-box {
+  background-color: #ffffff;
+  max-width: 540px;
+  margin: 40px auto;
+  padding: 36px 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.checkout-card-box.wide-review {
+  max-width: 780px;
+}
+
+.checkout-title {
+  margin: 0 0 6px 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.checkout-sub {
+  color: #666666;
+  font-size: 0.95rem;
+  margin: 0 0 28px 0;
+}
+
+/* Minimalist Form Styles */
+.modern-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #555555;
+}
+
+.field-group input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #fafafa;
+  transition: all 0.2s;
+}
+
+.field-group input:focus {
+  background-color: #ffffff;
+  border-color: #111111;
+  outline: none;
+}
+
+.field-group input.input-error {
+  border-color: #e53e3e;
+  background-color: #fff5f5;
+}
+
+.field-error-msg {
+  color: #e53e3e;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field-row-three {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.2fr;
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.checkout-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.btn-black-pill {
+  background-color: #111111;
+  color: #ffffff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-black-pill:hover:not(:disabled) {
+  background-color: #333333;
+}
+
+.btn-black-pill:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.btn-text-back {
+  background: none;
+  border: none;
+  color: #555555;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-text-back:hover {
+  color: #111111;
+}
+

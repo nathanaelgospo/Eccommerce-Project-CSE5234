@@ -1,14 +1,11 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useOrder } from '../context/OrderContext';
 
 const Confirmation = () => {
-  const location = useLocation();
+  const { order, resetOrder } = useOrder();
 
-  const confirmationNumber = location.state?.confirmationNumber || 'CH-749201';
-  const order = location.state?.order || {
-    items: [],
-    name: 'Customer',
-  };
+  const confirmationNumber = order.confirmationNumber || 'CH-749201';
 
   const selectedItems = (order.items || []).filter((item) => item.quantity > 0);
   const totalCost = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -62,7 +59,12 @@ const Confirmation = () => {
         </div>
 
         <div style={{ marginTop: '36px' }}>
-          <Link to="/purchase" className="btn-black-pill" style={{ textDecoration: 'none', display: 'inline-block' }}>
+          <Link
+            to="/purchase"
+            className="btn-black-pill"
+            style={{ textDecoration: 'none', display: 'inline-block' }}
+            onClick={resetOrder}
+          >
             Continue Shopping &rarr;
           </Link>
         </div>
