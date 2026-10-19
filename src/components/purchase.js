@@ -1,26 +1,33 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useOrder, CATALOG_ITEMS } from '../context/OrderContext';
+import { useOrder } from '../context/OrderContext';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
 const Purchase = () => {
   const navigate = useNavigate();
-  const { order, updateQuantity, addToCart } = useOrder();
-
+  const { order, updateQuantity, addToCart, inventoryLoading, inventoryError } = useOrder();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState('All Genres');
   const [selectedPriceRange, setSelectedPriceRange] = useState('All');
   const [sortBy, setSortBy] = useState('Featured');
 
-  const genres = ['All Genres', 'Rock', 'Progressive Rock', 'Jazz', 'Pop / Rock', 'Electronic'];
+  // Inventory products are loaded from AWS through OrderContext.
+  const products = Array.isArray(order.items) ? order.items : [];
+  const genres = ['All Genres', ...new Set(products.map((item) => item.genre))];
   const priceRanges = [
     { label: 'All Prices', value: 'All' },
     { label: 'Under $35', value: 'under-35' },
     { label: '$35 - $40', value: '35-40' },
     { label: 'Over $40', value: 'over-40' },
   ];
-  const sortOptions = ['Featured', 'Price: Low to High', 'Price: High to Low', 'Name: A to Z'];
+  const sortOptions = [
+    'Featured',
+    'Price: Low to High',
+    'Price: High to Low',
+    'Name: A to Z',
+  ];
 
   const handleQuantityChange = (itemId, value) => {
     updateQuantity(itemId, value);
@@ -31,27 +38,24 @@ const Purchase = () => {
     setIsDrawerOpen(true);
   };
 
-  const selectedItems = order.items.filter((item) => item.quantity > 0);
+  const selectedItems = products.filter((item) => item.quantity > 0);
   const totalItemCount = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalCost = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  // Compute filtered and sorted items
-  const filteredAndSortedItems = CATALOG_ITEMS.filter((item) => {
-    // Genre filter
-    if (selectedGenre !== 'All Genres' && item.genre !== selectedGenre) {
-      return false;
-    }
-    // Price filter
-    if (selectedPriceRange === 'under-35' && item.price >= 35) return false;
-    if (selectedPriceRange === '35-40' && (item.price < 35 || item.price > 40)) return false;
-    if (selectedPriceRange === 'over-40' && item.price <= 40) return false;
-    return true;
-  }).sort((a, b) => {
-    if (sortBy === 'Price: Low to High') return a.price - b.price;
-    if (sortBy === 'Price: High to Low') return b.price - a.price;
-    if (sortBy === 'Name: A to Z') return a.name.localeCompare(b.name);
-    return a.id - b.id; // Featured
-  });
+  const filteredAndSortedItems = products
+    .filter((item) => {
+      if (selectedGenre !== 'All Genres' && item.genre !== selectedGenre) return false;
+      if (selectedPriceRange === 'under-35' && item.price >= 35) return false;
+      if (selectedPriceRange === '35-40' && (item.price < 35 || item.price > 40)) return false;
+      if (selectedPriceRange === 'over-40' && item.price <= 40) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'Price: Low to High') return a.price - b.price;
+      if (sortBy === 'Price: High to Low') return b.price - a.price;
+      if (sortBy === 'Name: A to Z') return a.name.localeCompare(b.name);
+      return a.id - b.id;
+    });
 
   const handleProceedToPayment = () => {
     if (selectedItems.length === 0) {
@@ -63,7 +67,6 @@ const Purchase = () => {
 
   return (
     <div className="store-page">
-      {/* Main Navigation Bar */}
       <Navbar onOpenCart={() => setIsDrawerOpen(true)} />
 
       {/* Main Hero Header */}
@@ -71,7 +74,8 @@ const Purchase = () => {
         <span className="page-tag">Store Catalog</span>
         <h1 className="hero-title">Classic Vinyl Records</h1>
         <p className="hero-subtext">
-          Browse timeless essentials on vinyl. Filter by genre, sort by price, add records to your cart, and proceed to checkout.
+          Browse timeless essentials on vinyl. Filter by genre, sort by price,
+          add records to your cart, and proceed to checkout.
         </p>
 
         {/* Filter Pills Row */}
@@ -84,10 +88,8 @@ const Purchase = () => {
                 value={selectedGenre}
                 onChange={(e) => setSelectedGenre(e.target.value)}
               >
-                {genres.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
+                {genres.map((genre) => (
+                  <option key={genre} value={genre}>{genre}</option>
                 ))}
               </select>
             </div>
@@ -99,10 +101,8 @@ const Purchase = () => {
                 value={selectedPriceRange}
                 onChange={(e) => setSelectedPriceRange(e.target.value)}
               >
-                {priceRanges.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
+                {priceRanges.map((range) => (
+                  <option key={range.value} value={range.value}>{range.label}</option>
                 ))}
               </select>
             </div>
@@ -116,10 +116,8 @@ const Purchase = () => {
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
-                {sortOptions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
+                {sortOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
                 ))}
               </select>
             </div>
@@ -129,9 +127,19 @@ const Purchase = () => {
 
       {/* Products Grid */}
       <div className="product-grid-chanta">
-        {filteredAndSortedItems.length === 0 ? (
+        {inventoryLoading ? (
+          <div style={{ gridColumn: '1 / -1', padding: '60px 20px', textAlign: 'center' }}>
+            <p>Loading vinyl records...</p>
+          </div>
+        ) : inventoryError ? (
+          <div role="alert" style={{ gridColumn: '1 / -1', padding: '60px 20px', textAlign: 'center' }}>
+            <p>Could not load inventory: {inventoryError}</p>
+          </div>
+        ) : filteredAndSortedItems.length === 0 ? (
           <div style={{ gridColumn: '1 / -1', padding: '60px 20px', textAlign: 'center', color: '#666' }}>
-            <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>No albums match your filter criteria.</p>
+            <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>
+              No albums match your filter criteria.
+            </p>
             <button
               type="button"
               className="add-to-cart-action-btn"
@@ -146,14 +154,12 @@ const Purchase = () => {
           </div>
         ) : (
           filteredAndSortedItems.map((item) => {
-            const currentItemOrder = order.items.find((it) => it.id === item.id);
-            const currentQty = currentItemOrder?.quantity || 0;
+            const currentQty = item.quantity || 0;
             return (
               <div key={item.id} className="chanta-card">
                 <div className="product-img-wrapper">
                   <img src={item.image} alt={item.name} className="product-photo" />
                 </div>
-
                 <div className="chanta-card-details">
                   <div className="card-top-info">
                     <div className="genre-pill-tag">{item.genre}</div>
@@ -167,13 +173,15 @@ const Purchase = () => {
                       <button
                         type="button"
                         className="stepper-btn"
-                        onClick={() => handleQuantityChange(item.id, Math.max(0, currentQty - 1))}
+                        onClick={() => handleQuantityChange(item.id, currentQty - 1)}
+                        disabled={currentQty === 0}
                       >
                         −
                       </button>
                       <input
                         type="number"
                         min="0"
+                        max={item.stock}
                         className="stepper-input"
                         value={currentQty}
                         onChange={(e) => handleQuantityChange(item.id, e.target.value)}
@@ -182,17 +190,18 @@ const Purchase = () => {
                         type="button"
                         className="stepper-btn"
                         onClick={() => handleQuantityChange(item.id, currentQty + 1)}
+                        disabled={currentQty >= item.stock}
                       >
                         +
                       </button>
                     </div>
-
                     <button
                       type="button"
                       className="add-to-cart-action-btn"
                       onClick={() => handleAddToCart(item.id)}
+                      disabled={currentQty >= item.stock}
                     >
-                      Add
+                      {item.stock === 0 ? 'Out of Stock' : 'Add'}
                     </button>
                   </div>
                 </div>
@@ -210,7 +219,6 @@ const Purchase = () => {
               <h3>Shopping Cart ({totalItemCount})</h3>
               <button className="close-drawer-btn" onClick={() => setIsDrawerOpen(false)}>✕</button>
             </div>
-
             <div className="drawer-body">
               {selectedItems.length === 0 ? (
                 <div className="empty-cart-state">
@@ -219,54 +227,53 @@ const Purchase = () => {
                 </div>
               ) : (
                 <div className="cart-line-items">
-                  {order.items.map((item) => {
-                    if (item.quantity === 0) return null;
-                      return (
-                        <div key={item.id} className="drawer-item">
-                          <img src={item.image} alt={item.name} className="drawer-item-img" />
-                          <div className="drawer-item-info">
-                            <h4>{item.name}</h4>
-                            <span className="drawer-item-price">${item.price.toFixed(2)}</span>
-                            <div className="drawer-qty-row">
-                              <label>Qty:</label>
-                              <div className="quantity-stepper" style={{ transform: 'scale(0.85)', transformOrigin: 'left center' }}>
-                                <button
-                                  type="button"
-                                  className="stepper-btn"
-                                  onClick={() => handleQuantityChange(item.id, Math.max(0, item.quantity - 1))}
-                                >
-                                  −
-                                </button>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  className="stepper-input"
-                                  value={item.quantity}
-                                  onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                                />
-                                <button
-                                  type="button"
-                                  className="stepper-btn"
-                                  onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                                >
-                                  +
-                                </button>
-                              </div>
-                              <button
-                                type="button"
-                                className="remove-btn"
-                                onClick={() => handleQuantityChange(item.id, 0)}
-                              >
-                                Remove
-                              </button>
-                            </div>
+                  {selectedItems.map((item) => (
+                    <div key={item.id} className="drawer-item">
+                      <img src={item.image} alt={item.name} className="drawer-item-img" />
+                      <div className="drawer-item-info">
+                        <h4>{item.name}</h4>
+                        <span className="drawer-item-price">${item.price.toFixed(2)}</span>
+                        <div className="drawer-qty-row">
+                          <label>Qty:</label>
+                          <div className="quantity-stepper" style={{ transform: 'scale(0.85)', transformOrigin: 'left center' }}>
+                            <button
+                              type="button"
+                              className="stepper-btn"
+                              onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                            >
+                              −
+                            </button>
+                            <input
+                              type="number"
+                              min="0"
+                              max={item.stock}
+                              className="stepper-input"
+                              value={item.quantity}
+                              onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                            />
+                            <button
+                              type="button"
+                              className="stepper-btn"
+                              onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                              disabled={item.quantity >= item.stock}
+                            >
+                              +
+                            </button>
                           </div>
-                          <div className="drawer-item-subtotal">
-                            ${(item.price * item.quantity).toFixed(2)}
-                          </div>
+                          <button
+                            type="button"
+                            className="remove-btn"
+                            onClick={() => handleQuantityChange(item.id, 0)}
+                          >
+                            Remove
+                          </button>
                         </div>
-                      );
-                    })}
+                      </div>
+                      <div className="drawer-item-subtotal">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -290,7 +297,7 @@ const Purchase = () => {
         </div>
       )}
 
-      {/* Floating Bottom Cart Bar if items in cart and drawer closed */}
+      {/* Floating Bottom Cart Bar */}
       {!isDrawerOpen && selectedItems.length > 0 && (
         <div className="floating-cart-bar">
           <div className="floating-cart-content">
@@ -310,7 +317,6 @@ const Purchase = () => {
         </div>
       )}
 
-      {/* Global Footer */}
       <Footer />
     </div>
   );

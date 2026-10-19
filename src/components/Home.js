@@ -1,10 +1,14 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import { CATALOG_ITEMS } from '../context/OrderContext';
+import { useOrder } from '../context/OrderContext';
 
 const Home = () => {
+  const { order, inventoryLoading, inventoryError } = useOrder();
+  const products = Array.isArray(order.items) ? order.items : [];
+
   return (
     <div className="home-page">
       <Navbar />
@@ -65,48 +69,55 @@ const Home = () => {
         </div>
 
         <div className="product-grid-chanta" style={{ padding: '0', backgroundColor: 'transparent' }}>
-          {CATALOG_ITEMS.slice(0, 4).map((item) => (
-            <div key={item.id} className="chanta-card">
-              <div className="product-img-wrapper">
-                <img src={item.image} alt={item.name} className="product-photo" />
-              </div>
-
-              <div className="chanta-card-details">
-                <div className="card-top-info">
-                  <div className="genre-pill-tag">{item.genre}</div>
-                  <h3 className="item-title">{item.name}</h3>
-                  <p className="item-material">{item.subtitle}</p>
-                  <p className="item-price">${item.price.toFixed(2)}</p>
+          {inventoryLoading ? (
+            <p>Loading featured albums...</p>
+          ) : inventoryError ? (
+            <p role="alert">Inventory unavailable: {inventoryError}</p>
+          ) : (
+            products.slice(0, 4).map((item) => (
+              <div key={item.id} className="chanta-card">
+                <div className="product-img-wrapper">
+                  <img src={item.image} alt={item.name} className="product-photo" />
                 </div>
-
-                <div className="item-order-actions" style={{ marginTop: 'auto' }}>
-                  <Link
-                    to="/purchase"
-                    className="btn-black-pill"
-                    style={{
-                      width: '100%',
-                      justifyContent: 'center',
-                      textAlign: 'center',
-                      textDecoration: 'none',
-                      padding: '9px 16px',
-                      fontSize: '0.85rem'
-                    }}
-                  >
-                    View in Store &rarr;
-                  </Link>
+                <div className="chanta-card-details">
+                  <div className="card-top-info">
+                    <div className="genre-pill-tag">{item.genre}</div>
+                    <h3 className="item-title">{item.name}</h3>
+                    <p className="item-material">{item.subtitle}</p>
+                    <p className="item-price">${item.price.toFixed(2)}</p>
+                  </div>
+                  <div className="item-order-actions" style={{ marginTop: 'auto' }}>
+                    <Link
+                      to="/purchase"
+                      className="btn-black-pill"
+                      style={{
+                        width: '100%',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        textDecoration: 'none',
+                        padding: '9px 16px',
+                        fontSize: '0.85rem'
+                      }}
+                    >
+                      View in Store &rarr;
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '36px' }}>
-          <Link to="/purchase" className="btn-black-pill" style={{ textDecoration: 'none', display: 'inline-block' }}>
+          <Link
+            to="/purchase"
+            className="btn-black-pill"
+            style={{ textDecoration: 'none', display: 'inline-block' }}
+          >
             Open Catalog
           </Link>
         </div>
       </section>
-
       <Footer />
     </div>
   );

@@ -1,59 +1,15 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect
+} from 'react';
 
 const OrderContext = createContext(null);
 
-export const CATALOG_ITEMS = [
-  {
-    id: 1,
-    name: 'Abbey Road',
-    subtitle: 'The Beatles',
-    genre: 'Rock',
-    price: 34.99,
-    image: '/covers/abbey-road.jpg',
-  },
-  {
-    id: 2,
-    name: 'The Dark Side of the Moon',
-    subtitle: 'Pink Floyd',
-    genre: 'Progressive Rock',
-    price: 39.99,
-    image: '/covers/dark-side.jpg',
-  },
-  {
-    id: 3,
-    name: 'Kind of Blue',
-    subtitle: 'Miles Davis',
-    genre: 'Jazz',
-    price: 32.50,
-    image: '/covers/kind-of-blue.jpg',
-  },
-  {
-    id: 4,
-    name: 'Rumours',
-    subtitle: 'Fleetwood Mac',
-    genre: 'Pop / Rock',
-    price: 29.99,
-    image: '/covers/rumours.jpg',
-  },
-  {
-    id: 5,
-    name: 'Random Access Memories',
-    subtitle: 'Daft Punk',
-    genre: 'Electronic',
-    price: 44.99,
-    image: '/covers/random-access-memories.jpg',
-  },
-];
-
 const INITIAL_ORDER = {
-  items: CATALOG_ITEMS.map((item) => ({
-    id: item.id,
-    name: item.name,
-    subtitle: item.subtitle,
-    price: item.price,
-    quantity: 0,
-    image: item.image,
-  })),
+  items: [],
   credit_card_number: '',
   expir_date: '',
   cvvCode: '',
@@ -70,44 +26,139 @@ const INITIAL_ORDER = {
 };
 
 export const OrderProvider = ({ children }) => {
+
+  // Load previously saved order
   const [order, setOrder] = useState(() => {
     try {
       const saved = sessionStorage.getItem('cse5234_order_state');
+
       if (saved) {
         return JSON.parse(saved);
       }
     } catch (e) {
-      // fallback to initial
+      console.error('Could not load saved order:', e);
     }
+
     return INITIAL_ORDER;
   });
 
-  // Automatically persist to sessionStorage so refresh & back button never lose data
+  const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [inventoryError, setInventoryError] = useState('');
+
+  // Load inventory from AWS Lambda through API Gateway
+  useEffect(() => {
+    let active = true;
+
+    async function loadInventory() {
+      try {
+        const apiUrl = process.env.REACT_APP_INVENTORY_URL;
+
+        if (!apiUrl) {
+          throw new Error('Inventory API URL is missing');
+        }
+
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+          throw new Error(
+            `Inventory API error: ${response.status}`
+          );
+        }
+
+        const products = await response.json();
+
+        if (!Array.isArray(products)) {
+          throw new Error('Invalid inventory response');
+        }
+
+        if (!active) return;
+
+        setOrder((previousOrder) => ({
+          ...previousOrder,
+          items: products.map((product) => {
+            const previousItem = (previousOrder.items || []).find(
+              (item) => item.id === product.id
+            );
+
+            return {
+              ...product,
+              quantity: Math.min(
+                product.stock,
+                Math.max(0, previousItem?.quantity || 0)
+              )
+            };
+          })
+        }));
+
+        setInventoryError('');
+
+      } catch (error) {
+        if (active) {
+          console.error('Failed to load inventory:', error);
+          setInventoryError(error.message);
+        }
+      } finally {
+        if (active) {
+          setInventoryLoading(false);
+        }
+      }
+    }
+
+    loadInventory();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Automatically save order to sessionStorage
   useEffect(() => {
     try {
-      sessionStorage.setItem('cse5234_order_state', JSON.stringify(order));
+      sessionStorage.setItem(
+        'cse5234_order_state',
+        JSON.stringify(order)
+      );
     } catch (e) {
-      // ignore
+      console.error('Could not save order:', e);
     }
   }, [order]);
 
+  // Update item quantity without exceeding stock
   const updateQuantity = (itemId, qty) => {
     const validQty = Math.max(0, parseInt(qty, 10) || 0);
+
     setOrder((prev) => ({
       ...prev,
-      items: prev.items.map((it) => (it.id === itemId ? { ...it, quantity: validQty } : it)),
+      items: prev.items.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              quantity: Math.min(validQty, item.stock)
+            }
+          : item
+      )
     }));
   };
 
+  // Add one item to the shopping cart
   const addToCart = (itemId) => {
     setOrder((prev) => ({
       ...prev,
-      items: prev.items.map((it) =>
-        it.id === itemId ? { ...it, quantity: (it.quantity || 0) + 1 } : it
-      ),
+      items: prev.items.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              quantity: Math.min(
+                (item.quantity || 0) + 1,
+                item.stock
+              )
+            }
+          : item
+      )
     }));
   };
 
+  // Update payment details
   const updatePaymentInfo = (paymentData) => {
     setOrder((prev) => ({
       ...prev,
@@ -115,31 +166,48 @@ export const OrderProvider = ({ children }) => {
     }));
   };
 
+  // Update customer shipping information
   const updateShippingInfo = (shippingData) => {
     setOrder((prev) => ({
       ...prev,
       ...shippingData,
-      addressLine1: shippingData.address_1 || shippingData.addressLine1 || '',
-      addressLine2: shippingData.address_2 || shippingData.addressLine2 || '',
-      address_1: shippingData.address_1 || shippingData.addressLine1 || '',
-      address_2: shippingData.address_2 || shippingData.addressLine2 || '',
+      addressLine1:
+        shippingData.address_1 ||
+        shippingData.addressLine1 || '',
+      addressLine2:
+        shippingData.address_2 ||
+        shippingData.addressLine2 || '',
+      address_1:
+        shippingData.address_1 ||
+        shippingData.addressLine1 || '',
+      address_2:
+        shippingData.address_2 ||
+        shippingData.addressLine2 || '',
     }));
   };
 
+  // Existing Lab 6 confirmation logic
   const completeOrder = () => {
-    const confNumber = 'CH-' + Math.floor(100000 + Math.random() * 900000);
+    const confNumber =
+      'CH-' + Math.floor(100000 + Math.random() * 900000);
+
     setOrder((prev) => ({
       ...prev,
       confirmationNumber: confNumber,
     }));
+
     return confNumber;
   };
 
+  // Reset cart while keeping AWS inventory products
   const resetOrder = () => {
-    setOrder(INITIAL_ORDER);
-    try {
-      sessionStorage.removeItem('cse5234_order_state');
-    } catch (e) {}
+    setOrder((prev) => ({
+      ...INITIAL_ORDER,
+      items: prev.items.map((item) => ({
+        ...item,
+        quantity: 0
+      }))
+    }));
   };
 
   return (
@@ -147,6 +215,8 @@ export const OrderProvider = ({ children }) => {
       value={{
         order,
         setOrder,
+        inventoryLoading,
+        inventoryError,
         updateQuantity,
         addToCart,
         updatePaymentInfo,
@@ -162,9 +232,12 @@ export const OrderProvider = ({ children }) => {
 
 export const useOrder = () => {
   const context = useContext(OrderContext);
+
   if (!context) {
-    throw new Error('useOrder must be used within an OrderProvider');
+    throw new Error(
+      'useOrder must be used within an OrderProvider'
+    );
   }
+
   return context;
 };
-
