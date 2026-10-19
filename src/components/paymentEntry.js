@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrder } from '../context/OrderContext';
+import Footer from './Footer';
 
 const PaymentEntry = () => {
   const navigate = useNavigate();
@@ -187,6 +188,8 @@ const PaymentEntry = () => {
           </div>
         </form>
       </div>
+
+      <Footer />
     </div>
   );
 };

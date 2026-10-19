@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useOrder } from '../context/OrderContext';
+import Footer from './Footer';
 
 const Confirmation = () => {
   const { order, resetOrder } = useOrder();
@@ -69,6 +70,8 @@ const Confirmation = () => {
           </Link>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

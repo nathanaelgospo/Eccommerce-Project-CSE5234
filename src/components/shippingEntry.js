@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrder } from '../context/OrderContext';
+import Footer from './Footer';
 
 const ShippingEntry = () => {
   const navigate = useNavigate();
@@ -203,6 +204,8 @@ const ShippingEntry = () => {
           </div>
         </form>
       </div>
+
+      <Footer />
     </div>
   );
 };

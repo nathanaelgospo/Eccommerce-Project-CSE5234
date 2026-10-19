@@ -1,0 +1,125 @@
+/* =========================================
+   GLOBAL FOOTER STYLES
+   ========================================= */
+.global-footer {
+  background-color: #141414;
+  color: #a3a3a3;
+  margin-top: auto;
+  border-top: 1px solid #262626;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.footer-top {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px 32px 40px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.2fr;
+  gap: 40px;
+}
+
+.branding-col .logo-text,
+.branding-col .logo-icon {
+  color: #ffffff;
+}
+
+.footer-bio {
+  color: #888888;
+  font-size: 0.88rem;
+  margin-top: 8px;
+  margin-bottom: 14px;
+  max-width: 320px;
+}
+
+.footer-location {
+  color: #666666;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.footer-col h4.footer-heading {
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+  margin-top: 0;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  color: #999999;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.footer-links a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.footer-contact-item {
+  margin: 0 0 10px;
+  color: #888888;
+  font-size: 0.85rem;
+}
+
+.footer-contact-item strong {
+  color: #dddddd;
+}
+
+.footer-bottom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px;
+  border-top: 1px solid #222222;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: #666666;
+  font-size: 0.78rem;
+}
+
+.footer-legal {
+  display: flex;
+  gap: 20px;
+}
+
+.footer-legal span {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.footer-legal span:hover {
+  color: #aaaaaa;
+}
+
+@media (max-width: 860px) {
+  .footer-top {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .footer-top {
+    grid-template-columns: 1fr;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+

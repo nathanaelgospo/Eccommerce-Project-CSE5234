@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrder } from '../context/OrderContext';
+import Footer from './Footer';
 
 const ViewOrder = () => {
   const navigate = useNavigate();
@@ -128,6 +129,8 @@ const ViewOrder = () => {
           </button>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

@@ -1,6 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { OrderProvider } from './context/OrderContext';
+import Home from './components/Home';
+import About from './components/About';
+import Contact from './components/Contact';
 import Purchase from './components/purchase';
 import PaymentEntry from './components/paymentEntry';
 import ShippingEntry from './components/shippingEntry';
@@ -14,7 +17,9 @@ function App() {
       <OrderProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<Navigate replace to="/purchase" />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/purchase" element={<Purchase />} />
             <Route path="/purchase/paymentEntry" element={<PaymentEntry />} />
             <Route path="/purchase/shippingEntry" element={<ShippingEntry />} />

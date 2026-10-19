@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrder, CATALOG_ITEMS } from '../context/OrderContext';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
 const Purchase = () => {
   const navigate = useNavigate();
@@ -62,41 +64,11 @@ const Purchase = () => {
   return (
     <div className="store-page">
       {/* Main Navigation Bar */}
-      <header className="chanta-nav">
-        <div className="nav-logo">
-          <svg className="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="3" />
-            <path d="M12 2a10 10 0 0 1 10 10" />
-          </svg>
-          <span className="logo-text">groove<sup className="trade">TM</sup></span>
-        </div>
-
-        <nav className="nav-center">
-          <a href="/purchase" className="active-nav">Catalog</a>
-        </nav>
-
-        <div className="nav-right">
-          <button className="cart-badge-btn" onClick={() => setIsDrawerOpen(true)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <path d="M16 10a4 4 0 0 1-8 0"></path>
-            </svg>
-            <span>Cart {totalItemCount}</span>
-          </button>
-          <span className="account-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            My account
-          </span>
-        </div>
-      </header>
+      <Navbar onOpenCart={() => setIsDrawerOpen(true)} />
 
       {/* Main Hero Header */}
       <div className="store-hero">
+        <span className="page-tag">Store Catalog</span>
         <h1 className="hero-title">Classic Vinyl Records</h1>
         <p className="hero-subtext">
           Browse timeless essentials on vinyl. Filter by genre, sort by price, add records to your cart, and proceed to checkout.
@@ -337,6 +309,9 @@ const Purchase = () => {
           </div>
         </div>
       )}
+
+      {/* Global Footer */}
+      <Footer />
     </div>
   );
 };

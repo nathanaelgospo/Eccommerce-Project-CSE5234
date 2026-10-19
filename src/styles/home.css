@@ -1,0 +1,208 @@
+/* =========================================
+   HOME LANDING PAGE STYLES (Groove Minimalist)
+   ========================================= */
+.home-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #ededed;
+}
+
+/* Hero Section matching Store Hero */
+.home-hero {
+  background-color: #ffffff;
+  padding: 48px 48px 40px;
+  border-bottom: 1px solid #eaeaea;
+  text-align: left;
+}
+
+.hero-content {
+  max-width: 820px;
+  margin: 0;
+}
+
+.hero-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #666666;
+  background: #f4f4f4;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  margin-bottom: 14px;
+}
+
+.hero-heading {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 10px;
+  color: #111111;
+}
+
+.hero-text {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: #666666;
+  margin: 0 0 24px;
+  max-width: 600px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-black-pill {
+  background-color: #111111;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  text-decoration: none;
+  border: 1px solid #111111;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-black-pill:hover {
+  background-color: #2b2b2b;
+}
+
+.btn-outline-pill {
+  background-color: #ffffff;
+  color: #111111;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  text-decoration: none;
+  border: 1px solid #dcdcdc;
+  display: inline-flex;
+  align-items: center;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-outline-pill:hover {
+  border-color: #999999;
+  background-color: #fafafa;
+}
+
+/* Perks Section - exactly 48px padding & 24px gap to match product grid */
+.perks-container {
+  padding: 32px 48px 0 48px;
+  width: 100%;
+}
+
+.perks-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.perk-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 24px 22px;
+  border: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+}
+
+.perk-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #888888;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.perk-card h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: #111111;
+}
+
+.perk-card p {
+  font-size: 0.82rem;
+  color: #666666;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Featured Section - matches store margins and padding */
+.home-featured-section {
+  padding: 40px 48px 80px 48px;
+  width: 100%;
+}
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 4px;
+  color: #111111;
+}
+
+.section-subtitle {
+  font-size: 0.9rem;
+  color: #777777;
+  margin: 0;
+}
+
+.view-all-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111111;
+  text-decoration: none;
+}
+
+.view-all-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1200px) {
+  .perks-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 960px) {
+  .home-hero {
+    padding: 36px 24px;
+  }
+  .perks-container,
+  .home-featured-section {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .hero-heading {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 550px) {
+  .perks-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-heading {
+    font-size: 1.8rem;
+  }
+}
