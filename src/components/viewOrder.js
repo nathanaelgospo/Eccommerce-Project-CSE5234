@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrder } from '../context/OrderContext';
 import Footer from './Footer';
 
 const ViewOrder = () => {
   const navigate = useNavigate();
-  const { order, completeOrder } = useOrder();
+  const { order, completeOrder, orderSubmitting } = useOrder();
+  const [orderError, setOrderError] = useState('');
 
   const selectedItems = (order.items || []).filter((item) => item.quantity > 0);
   const totalCost = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -14,9 +15,14 @@ const ViewOrder = () => {
     ? `•••• •••• •••• ${order.credit_card_number.slice(-4)}`
     : 'N/A';
 
-  const handleConfirmOrder = () => {
-    completeOrder();
-    navigate('/purchase/viewConfirmation');
+  const handleConfirmOrder = async () => {
+    setOrderError('');
+    try {
+      await completeOrder();
+      navigate('/purchase/viewConfirmation');
+    } catch (error) {
+      setOrderError(error.message || 'Could not place your order. Please try again.');
+    }
   };
 
   return (
@@ -122,12 +128,13 @@ const ViewOrder = () => {
           <button
             type="button"
             className="btn-black-pill"
-            disabled={selectedItems.length === 0}
+            disabled={selectedItems.length === 0 || orderSubmitting}
             onClick={handleConfirmOrder}
           >
-            Confirm & Place Order &rarr;
+            {orderSubmitting ? 'Placing Order…' : 'Confirm & Place Order →'}
           </button>
         </div>
+        {orderError && <p role="alert" className="field-error-msg">{orderError}</p>}
       </div>
 
       <Footer />

@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Order processing API for the groove e-commerce lab
+
+Parameters:
+  InventoryApiUrl:
+    Type: String
+    Description: Invoke URL for GET /inventory-management/inventory
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 10
+    MemorySize: 128
+
+Resources:
+  OrderApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: dev
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowHeaders:
+          - content-type
+        AllowMethods:
+          - POST
+          - OPTIONS
+
+  OrderProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: lambda_function.lambda_handler
+      Environment:
+        Variables:
+          INVENTORY_API_URL: !Ref InventoryApiUrl
+      Events:
+        SubmitOrder:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref OrderApi
+            Path: /order-processing/order
+            Method: POST
+
+Outputs:
+  OrderApiUrl:
+    Description: POST endpoint for order submission
+    Value: !Sub 'https://${OrderApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/dev/order-processing/order'

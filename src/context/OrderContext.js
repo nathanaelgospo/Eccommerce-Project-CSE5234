@@ -44,6 +44,7 @@ export const OrderProvider = ({ children }) => {
 
   const [inventoryLoading, setInventoryLoading] = useState(true);
   const [inventoryError, setInventoryError] = useState('');
+  const [orderSubmitting, setOrderSubmitting] = useState(false);
 
   // Load inventory from AWS Lambda through API Gateway
   useEffect(() => {
@@ -186,17 +187,55 @@ export const OrderProvider = ({ children }) => {
     }));
   };
 
-  // Existing Lab 6 confirmation logic
-  const completeOrder = () => {
-    const confNumber =
-      'CH-' + Math.floor(100000 + Math.random() * 900000);
+  // Submit an order to the order-processing microservice.
+  const completeOrder = async () => {
+    const apiUrl = process.env.REACT_APP_ORDER_URL;
+    if (!apiUrl) {
+      throw new Error('Order API URL is missing');
+    }
 
-    setOrder((prev) => ({
-      ...prev,
-      confirmationNumber: confNumber,
-    }));
+    setOrderSubmitting(true);
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: order.items
+            .filter((item) => item.quantity > 0)
+            .map(({ id, quantity }) => ({ id, quantity })),
+          payment: {
+            card_holder_name: order.card_holder_name,
+            credit_card_number: order.credit_card_number,
+            expir_date: order.expir_date,
+            cvvCode: order.cvvCode,
+          },
+          shipping: {
+            name: order.name,
+            address_1: order.address_1,
+            address_2: order.address_2,
+            city: order.city,
+            state: order.state,
+            zip: order.zip,
+          },
+        }),
+      });
 
-    return confNumber;
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || `Order API error: ${response.status}`);
+      }
+      if (!result.confirmationNumber) {
+        throw new Error('Order API returned no confirmation number');
+      }
+
+      setOrder((previous) => ({
+        ...previous,
+        confirmationNumber: result.confirmationNumber,
+      }));
+      return result.confirmationNumber;
+    } finally {
+      setOrderSubmitting(false);
+    }
   };
 
   // Reset cart while keeping AWS inventory products
@@ -217,6 +256,7 @@ export const OrderProvider = ({ children }) => {
         setOrder,
         inventoryLoading,
         inventoryError,
+        orderSubmitting,
         updateQuantity,
         addToCart,
         updatePaymentInfo,

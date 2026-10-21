@@ -44,3 +44,27 @@ The application will be available at [http://localhost:3000](http://localhost:30
 npm run build
 ```
 Creates an optimized production bundle in the `build/` directory.
+
+## Lab 7 Order Processing API
+
+The order-processing Lambda lives in `backend/order_processing`. It exposes
+`POST /order-processing/order`, accepts the checkout's items, payment details,
+and shipping information, and checks requested quantities against the inventory
+API before returning a confirmation number. It returns HTTP 409 with each
+unavailable item and its available quantity when stock is insufficient.
+
+To deploy it with AWS SAM, from `backend/order_processing` run:
+
+```bash
+sam build
+sam deploy --guided --parameter-overrides InventoryApiUrl=https://e6aq1plbmj.execute-api.us-east-2.amazonaws.com/dev/inventory-management/inventory
+```
+
+Copy `.env.example` to `.env.local` to configure the inventory and order API
+URLs. Restart `npm start` after changing either URL.
+
+Run the Lambda's local unit tests from the repository root with:
+
+```bash
+python3 -m unittest discover -s backend/order_processing -p 'test_*.py'
+```

@@ -6,7 +6,7 @@ import Footer from './Footer';
 const Confirmation = () => {
   const { order, resetOrder } = useOrder();
 
-  const confirmationNumber = order.confirmationNumber || 'CH-749201';
+  const confirmationNumber = order.confirmationNumber;
 
   const selectedItems = (order.items || []).filter((item) => item.quantity > 0);
   const totalCost = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
