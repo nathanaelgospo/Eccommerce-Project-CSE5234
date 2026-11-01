@@ -6,6 +6,24 @@ Parameters:
   InventoryApiUrl:
     Type: String
     Description: Invoke URL for GET /inventory-management/inventory
+    Default: 'https://e6aq1plbmj.execute-api.us-east-2.amazonaws.com/dev/inventory-management/inventory'
+  DbHost:
+    Type: String
+    Description: RDS MySQL Endpoint Host
+    Default: 'lab8-database.cz6cmg22wmo5.us-east-2.rds.amazonaws.com'
+  DbUser:
+    Type: String
+    Description: RDS Database Username
+    Default: 'admin'
+  DbPassword:
+    Type: String
+    Description: RDS Database Password
+    NoEcho: true
+    Default: 'distributecomputingpassword'
+  DbName:
+    Type: String
+    Description: RDS Database Name
+    Default: 'warehouse_db'
 
 Globals:
   Function:
@@ -35,6 +53,10 @@ Resources:
       Environment:
         Variables:
           INVENTORY_API_URL: !Ref InventoryApiUrl
+          DB_HOST: !Ref DbHost
+          DB_USER: !Ref DbUser
+          DB_PASSWORD: !Ref DbPassword
+          DB_NAME: !Ref DbName
       Events:
         SubmitOrder:
           Type: HttpApi

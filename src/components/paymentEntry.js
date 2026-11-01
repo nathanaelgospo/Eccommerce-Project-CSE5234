@@ -12,12 +12,20 @@ const PaymentEntry = () => {
     expir_date: order.expir_date || '',
     cvvCode: order.cvvCode || '',
     card_holder_name: order.card_holder_name || '',
+    email: order.email || '',
   });
 
   const [errors, setErrors] = useState({});
 
   const validate = () => {
     const errs = {};
+
+    // Email
+    if (!paymentData.email.trim()) {
+      errs.email = 'Email address is required.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paymentData.email.trim())) {
+      errs.email = 'Please enter a valid email address.';
+    }
 
     // Cardholder Name: at least 2 chars, letters and spaces
     if (!paymentData.card_holder_name.trim()) {
@@ -106,6 +114,22 @@ const PaymentEntry = () => {
         <p className="checkout-sub">Enter your payment card details below.</p>
 
         <form onSubmit={handleSubmit} className="modern-form" noValidate>
+          <div className="field-group">
+            <label htmlFor="email">Customer Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              className={errors.email ? 'input-error' : ''}
+              placeholder="e.g. name@example.com"
+              value={paymentData.email}
+              onChange={handleChange}
+            />
+            {errors.email && (
+              <span className="field-error-msg">{errors.email}</span>
+            )}
+          </div>
+
           <div className="field-group">
             <label htmlFor="card_holder_name">Cardholder Name</label>
             <input

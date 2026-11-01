@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrder } from '../context/OrderContext';
 import Navbar from './Navbar';
@@ -7,8 +7,22 @@ import Footer from './Footer';
 
 const Purchase = () => {
   const navigate = useNavigate();
-  const { order, updateQuantity, addToCart, inventoryLoading, inventoryError } = useOrder();
+  const {
+    order,
+    updateQuantity,
+    addToCart,
+    inventoryLoading,
+    inventoryError,
+    refreshInventory,
+  } = useOrder();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Automatically fetch fresh warehouse inventory every time user visits the store
+  useEffect(() => {
+    if (refreshInventory) {
+      refreshInventory();
+    }
+  }, [refreshInventory]);
   const [selectedGenre, setSelectedGenre] = useState('All Genres');
   const [selectedPriceRange, setSelectedPriceRange] = useState('All');
   const [sortBy, setSortBy] = useState('Featured');
@@ -161,8 +175,13 @@ const Purchase = () => {
                   <img src={item.image} alt={item.name} className="product-photo" />
                 </div>
                 <div className="chanta-card-details">
-                  <div className="card-top-info">
-                    <div className="genre-pill-tag">{item.genre}</div>
+                    <div className="card-top-info">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="genre-pill-tag">{item.genre}</div>
+                      <span style={{ fontSize: '0.78rem', color: item.stock <= 5 ? '#e53935' : '#666', fontWeight: 600 }}>
+                        {item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
+                      </span>
+                    </div>
                     <h3 className="item-title">{item.name}</h3>
                     <p className="item-material">{item.subtitle}</p>
                     <p className="item-price">${item.price.toFixed(2)}</p>

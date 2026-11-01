@@ -111,6 +111,7 @@ const ViewOrder = () => {
                 </button>
               </div>
               <p className="info-bold">{order.card_holder_name || 'Cardholder'}</p>
+              {order.email && <p className="info-text">Email: {order.email}</p>}
               <p className="info-text">{maskedCard}</p>
               <p className="info-text">Exp: {order.expir_date || 'N/A'}</p>
             </div>

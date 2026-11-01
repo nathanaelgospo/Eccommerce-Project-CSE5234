@@ -1,0 +1,63 @@
+"""
+Database connection factory and pool configuration for AWS RDS MySQL.
+"""
+
+import os
+
+try:
+    import pymysql
+except ImportError:
+    pymysql = None
+
+
+def _load_dotenv_if_exists():
+    """Simple parser to load .env / .env.local if not already in os.environ."""
+    env_paths = [
+        os.path.join(os.path.dirname(__file__), "..", "..", ".env.local"),
+        os.path.join(os.path.dirname(__file__), "..", "..", ".env"),
+    ]
+    for env_path in env_paths:
+        if os.path.isfile(env_path):
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            k, v = k.strip(), v.strip().strip('"').strip("'")
+                            if k not in os.environ:
+                                os.environ[k] = v
+            except Exception:
+                pass
+
+
+def get_db_connection():
+    """Establish and return an active MySQL connection to RDS warehouse_db."""
+    if pymysql is None:
+        return None
+
+    _load_dotenv_if_exists()
+
+    host = os.environ.get("DB_HOST", "lab8-database.cz6cmg22wmo5.us-east-2.rds.amazonaws.com")
+    user = os.environ.get("DB_USER", "admin")
+    password = os.environ.get("DB_PASSWORD", "distributecomputingpassword")
+    db_name = os.environ.get("DB_NAME", "warehouse_db")
+
+    if not host or not user or not password:
+        print("[DB] Missing database connection credentials.")
+        return None
+
+    try:
+        return pymysql.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=db_name,
+            connect_timeout=5,
+            autocommit=False,
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+    except Exception as error:
+        print(f"[DB] Connection failed: {error}")
+        return None
+

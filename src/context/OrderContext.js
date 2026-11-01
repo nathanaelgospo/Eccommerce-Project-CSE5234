@@ -5,6 +5,7 @@ import React, {
   useState,
   useEffect
 } from 'react';
+import { fetchAlbums, submitOrder } from '../api/grooveApi';
 
 const OrderContext = createContext(null);
 
@@ -22,6 +23,7 @@ const INITIAL_ORDER = {
   city: '',
   state: '',
   zip: '',
+  email: '',
   confirmationNumber: '',
 };
 
@@ -46,71 +48,42 @@ export const OrderProvider = ({ children }) => {
   const [inventoryError, setInventoryError] = useState('');
   const [orderSubmitting, setOrderSubmitting] = useState(false);
 
-  // Load inventory from AWS Lambda through API Gateway
-  useEffect(() => {
-    let active = true;
+  // Refresh inventory directly from backend/RDS
+  const refreshInventory = React.useCallback(async () => {
+    try {
+      setInventoryLoading(true);
+      const products = await fetchAlbums();
 
-    async function loadInventory() {
-      try {
-        const apiUrl = process.env.REACT_APP_INVENTORY_URL;
-
-        if (!apiUrl) {
-          throw new Error('Inventory API URL is missing');
-        }
-
-        const response = await fetch(apiUrl);
-
-        if (!response.ok) {
-          throw new Error(
-            `Inventory API error: ${response.status}`
+      setOrder((previousOrder) => ({
+        ...previousOrder,
+        items: products.map((product) => {
+          const previousItem = (previousOrder.items || []).find(
+            (item) => item.id === product.id
           );
-        }
 
-        const products = await response.json();
+          return {
+            ...product,
+            quantity: Math.min(
+              product.stock,
+              Math.max(0, previousItem?.quantity || 0)
+            )
+          };
+        })
+      }));
 
-        if (!Array.isArray(products)) {
-          throw new Error('Invalid inventory response');
-        }
-
-        if (!active) return;
-
-        setOrder((previousOrder) => ({
-          ...previousOrder,
-          items: products.map((product) => {
-            const previousItem = (previousOrder.items || []).find(
-              (item) => item.id === product.id
-            );
-
-            return {
-              ...product,
-              quantity: Math.min(
-                product.stock,
-                Math.max(0, previousItem?.quantity || 0)
-              )
-            };
-          })
-        }));
-
-        setInventoryError('');
-
-      } catch (error) {
-        if (active) {
-          console.error('Failed to load inventory:', error);
-          setInventoryError(error.message);
-        }
-      } finally {
-        if (active) {
-          setInventoryLoading(false);
-        }
-      }
+      setInventoryError('');
+    } catch (error) {
+      console.error('Failed to load inventory:', error);
+      setInventoryError(error.message);
+    } finally {
+      setInventoryLoading(false);
     }
-
-    loadInventory();
-
-    return () => {
-      active = false;
-    };
   }, []);
+
+  // Initial load
+  useEffect(() => {
+    refreshInventory();
+  }, [refreshInventory]);
 
   // Automatically save order to sessionStorage
   useEffect(() => {
@@ -187,66 +160,36 @@ export const OrderProvider = ({ children }) => {
     }));
   };
 
-  // Submit an order to the order-processing microservice.
+  // Submit an order to the order-processing microservice via API layer
   const completeOrder = async () => {
-    const apiUrl = process.env.REACT_APP_ORDER_URL;
-    if (!apiUrl) {
-      throw new Error('Order API URL is missing');
-    }
-
     setOrderSubmitting(true);
     try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: order.items
-            .filter((item) => item.quantity > 0)
-            .map(({ id, quantity }) => ({ id, quantity })),
-          payment: {
-            card_holder_name: order.card_holder_name,
-            credit_card_number: order.credit_card_number,
-            expir_date: order.expir_date,
-            cvvCode: order.cvvCode,
-          },
-          shipping: {
-            name: order.name,
-            address_1: order.address_1,
-            address_2: order.address_2,
-            city: order.city,
-            state: order.state,
-            zip: order.zip,
-          },
-        }),
-      });
-
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(result.error || `Order API error: ${response.status}`);
-      }
-      if (!result.confirmationNumber) {
-        throw new Error('Order API returned no confirmation number');
-      }
-
+      const confirmationNumber = await submitOrder(order);
       setOrder((previous) => ({
         ...previous,
-        confirmationNumber: result.confirmationNumber,
+        confirmationNumber,
       }));
-      return result.confirmationNumber;
+      // Clear saved order session so next order starts clean
+      try {
+        sessionStorage.removeItem('cse5234_order_state');
+      } catch (e) {
+        // ignore
+      }
+      return confirmationNumber;
     } finally {
       setOrderSubmitting(false);
     }
   };
 
-  // Reset cart while keeping AWS inventory products
-  const resetOrder = () => {
-    setOrder((prev) => ({
-      ...INITIAL_ORDER,
-      items: prev.items.map((item) => ({
-        ...item,
-        quantity: 0
-      }))
-    }));
+  // Reset cart, wipe session storage, and pull updated warehouse stock
+  const resetOrder = async () => {
+    try {
+      sessionStorage.removeItem('cse5234_order_state');
+    } catch (e) {
+      // ignore
+    }
+    setOrder(INITIAL_ORDER);
+    await refreshInventory();
   };
 
   return (
@@ -263,6 +206,7 @@ export const OrderProvider = ({ children }) => {
         updateShippingInfo,
         completeOrder,
         resetOrder,
+        refreshInventory,
       }}
     >
       {children}
