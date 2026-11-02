@@ -69,8 +69,15 @@ class OrderService:
                 })
 
         if insufficient:
+            detail_strings = []
+            for item in insufficient:
+                item_id = item["id"]
+                album_name = album_map.get(item_id, {}).get("name") or f"Item #{item_id}"
+                detail_strings.append(f"{album_name} (requested {item['requested']}, available {item['available']})")
+
+            details = ", ".join(detail_strings)
             return False, {
-                "error": "Insufficient inventory for one or more items",
+                "error": f"Insufficient inventory: {details}",
                 "unavailableItems": insufficient,
             }, 409
 
