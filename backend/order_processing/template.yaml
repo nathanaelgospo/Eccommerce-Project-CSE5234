@@ -10,20 +10,16 @@ Parameters:
   DbHost:
     Type: String
     Description: RDS MySQL Endpoint Host
-    Default: 'lab8-database.cz6cmg22wmo5.us-east-2.rds.amazonaws.com'
   DbUser:
     Type: String
     Description: RDS Database Username
-    Default: 'admin'
   DbPassword:
     Type: String
     Description: RDS Database Password
     NoEcho: true
-    Default: 'distributecomputingpassword'
   DbName:
     Type: String
     Description: RDS Database Name
-    Default: 'warehouse_db'
 
 Globals:
   Function:

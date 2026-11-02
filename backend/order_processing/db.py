@@ -14,10 +14,10 @@ def get_db_connection():
     if pymysql is None:
         return None
 
-    host = os.environ.get("DB_HOST", "lab8-database.cz6cmg22wmo5.us-east-2.rds.amazonaws.com")
-    user = os.environ.get("DB_USER", "admin")
-    password = os.environ.get("DB_PASSWORD", "distributecomputingpassword")
-    db_name = os.environ.get("DB_NAME", "warehouse_db")
+    host = os.environ.get("DB_HOST")
+    user = os.environ.get("DB_USER")
+    password = os.environ.get("DB_PASSWORD")
+    db_name = os.environ.get("DB_NAME")
 
     if not host or not user or not password:
         return None
